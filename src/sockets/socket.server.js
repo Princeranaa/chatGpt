@@ -45,9 +45,8 @@ function initScoketServer(htttpServer) {
             await userMessage.save();
 
             /* find the all the chat  */
-            const chat = await messageModel.find({ chat: messagePayload.chat })
+            const chat = await messageModel.find({ chat: messagePayload.chat }).sort({createdAt: -1}).limit(20).lean().reverse();
             // console.log("all the chats--------->>>>", chat)
-
 
             const response = await generateResponse(chat.map((item) => {
                 return {
