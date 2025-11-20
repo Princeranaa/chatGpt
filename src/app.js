@@ -1,16 +1,22 @@
 const express = require("express")
 const app = express();
 const cookieparser = require("cookie-parser")
-const authRoutes = require("../src/routes/auth.routes")
 
+
+/* routes */
+const authRoutes = require("../src/routes/auth.routes")
+const chatRoutes = require("../src/routes/chats.routes")
 
 app.use(cookieparser());
 app.use(express.json());
 
-/* call : connect to db */
-const db = require("./config/db")
-db.connectToDb()
 
+
+/* Use routes */
 app.use("/api/auth", authRoutes)
+app.use("/api/chat", chatRoutes)
+
+
+
 
 module.exports = app;
