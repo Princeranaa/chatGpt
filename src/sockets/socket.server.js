@@ -33,9 +33,10 @@ function initScoketServer(htttpServer) {
         console.log("Socket is connected", socket.id);
 
         socket.on("ai-message", async (messagePayload) => {
-            console.log("message received===>", messagePayload)
-            
-            const userMessage =  new messageModel({
+            // console.log("message received===>", messagePayload)
+
+
+            const userMessage = new messageModel({
                 user: socket.user._id,
                 chat: messagePayload.chat,
                 content: messagePayload.content,
@@ -43,12 +44,22 @@ function initScoketServer(htttpServer) {
             });
             await userMessage.save();
 
+            /* find the all the chat  */
+            const chat = await messageModel.find({ chat: messagePayload.chat })
+            // console.log("all the chats--------->>>>", chat)
 
-            const response = await generateResponse(messagePayload.content)
 
-            const aiMessageResponse =  new messageModel({
+            const response = await generateResponse(chat.map((item) => {
+                return {
+                    role: item.role,
+                    parts: [{ text: item.content }]
+
+                }
+            }))
+
+            const aiMessageResponse = new messageModel({
                 user: socket.user._id,
-                chat:messagePayload.chat,
+                chat: messagePayload.chat,
                 content: response,
                 role: "model"
             });
