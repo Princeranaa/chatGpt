@@ -26,7 +26,4 @@ exports.authMiddleware = async (req, res, next) => {
             message: "Unothorized"
         })
     }
-
-
-
 }
