@@ -139,7 +139,7 @@ exports.getMe = async (req, res) => {
       user: user,
     })
 
-  } catch (error) {
+  } catch (error) {   
     return res.status(500).json({
       message: "Internal server error during user fetching",
     })

@@ -6,9 +6,7 @@ const httpServer = require("http").createServer(app);
 
 /* call : connect to db */
 const db = require("./src/config/db");
-const { testAi } = require("./src/services/ai.service");
 db.connectToDb();
-testAi();
 
 /* Socket called */
 initScoketServer(httpServer);
