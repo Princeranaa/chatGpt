@@ -1,14 +1,12 @@
-const {GoogleGenAI} = require("@google/genai");
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 
-const ai = new GoogleGenAI({});
+const model = new ChatGoogleGenerativeAI({
+  model: "gemini-2.5-flash",
+  apiKey: process.env.GEMINI_API_KEY,
+});
 
-exports.generateResponse = async (content) => {
-
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: content
-    });
-
-    return response.text
-
+export async function testAi() {
+  model.invoke("What is the capital of india?").then((response) => {
+    console.log(response?.text);
+  });
 }

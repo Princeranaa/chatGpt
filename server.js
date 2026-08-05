@@ -1,17 +1,18 @@
-require("dotenv").config()
+require("dotenv").config();
 const app = require("./src/app");
 const initScoketServer = require("./src/sockets/socket.server");
-const httpServer = require("http").createServer(app)
+const httpServer = require("http").createServer(app);
 
 
 /* call : connect to db */
-const db = require("./src/config/db")
-db.connectToDb()
+const db = require("./src/config/db");
+const { testAi } = require("./src/services/ai.service");
+db.connectToDb();
+testAi();
 
 /* Socket called */
-initScoketServer(httpServer)
+initScoketServer(httpServer);
 
-httpServer.listen(3000, ()=>{
-    console.log(`server started on the 3000`);
-    
-})
+httpServer.listen(3000, () => {
+  console.log(`server started on the 3000`);
+});
