@@ -1,13 +1,19 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useChat } from "../hooks/useChat";
+import { initializeSocket } from "../service/chat.socket";
 
 const Dashboard = () => {
-  const {user} = useSelector(state=>state.auth);
-  console.log("User is here", user)
-  
-    return (
-    <div>Dashboard</div>
-  )
-}
+  const chat = useChat();
 
-export default Dashboard
+  const { user } = useSelector((state) => state.auth);
+  console.log("User is here", user);
+
+  useEffect(() => {
+    chat.initializeSocket();
+  }, []);
+
+  return <div>Dashboard</div>;
+};
+
+export default Dashboard;

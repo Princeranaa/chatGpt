@@ -7,7 +7,12 @@ const messageModel = require("../model/message.model")
 
 function initScoketServer(htttpServer) {
 
-    const io = new Server(htttpServer, {})
+    const io = new Server(htttpServer, {
+        cors:{
+            origin:"http://localhost:5173",
+            credentials:true
+        }
+    })
 
     io.use(async (socket, next) => {
         const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
