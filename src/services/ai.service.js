@@ -1,12 +1,63 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatMistralAI } from "@langchain/mistralai";
+import { HumanMessage, SystemMessage } from "langchain";
 
-const model = new ChatGoogleGenerativeAI({
+const geminiModel = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-export async function testAi() {
-  model.invoke("What is the capital of india?").then((response) => {
-    console.log(response?.text);
-  });
+const mistralAiModel = new ChatMistralAI({
+  model: "mistral-small-latest",
+  apiKey: process.env.Mistral_API_KEY,
+});
+
+export async function GeneratResponse(message) {
+  const response = await geminiModel.invoke([new HumanMessage(message)]);
+  return response.text;
+}
+
+
+
+
+const titleSystemPrompt = `
+      You are a chat title generator.
+
+      Your task is to analyze the entire conversation and create a short, meaningful title that represents the main topic and purpose of the chat.
+
+      Rules:
+      - Understand the overall intent of the conversation, not just the latest message.
+      - Identify the primary subject, goal, or problem being discussed.
+      - Generate a concise title between 3 and 8 words.
+      - Use natural language, like a human-created chat title.
+      - Avoid generic titles like "Conversation", "Chat", "Discussion", or "Help".
+      - Do not include quotes, emojis, punctuation, or explanations.
+      - Return only the title.
+
+      Examples:
+      Conversation:
+      User wants help building a React authentication system with JWT.
+      Title:
+      React JWT Authentication Setup
+
+      Conversation:
+      User is comparing laptops for programming and gaming.
+      Title:
+      Laptop Selection for Developers
+
+      Conversation:
+      User is debugging a Node.js API error.
+      Title:
+      Node.js API Error Debugging
+  `;
+
+
+
+
+export async function generateTitle(message) {
+  const response = await mistralAiModel.invoke([
+    new SystemMessage(titleSystemPrompt),
+    new HumanMessage(message)
+  ])
+  return response.text;
 }
