@@ -22,15 +22,15 @@ import {
   Settings,
   X,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const Dashboard = () => {
   const chat = useChat();
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [useSearch, setUseSearch] = useState(false);
-  // const [useReasoning, setUseReasoning] = useState(true);
   const [messageInput, setMessageInput] = useState("");
-  console.log("message send ", messageInput);
 
   const chats = useSelector((state) => state.chats.chats);
   const currentChatId = useSelector((state) => state.chats.currentChatId);
@@ -45,7 +45,12 @@ const Dashboard = () => {
 
   useEffect(() => {
     chat.initializeSocket();
+    chat.handleGetChats();
   }, []);
+
+  const openChat = (chatId) => {
+    chat.handleOpenChat(chatId);
+  };
 
   // Auto-resize textarea as user types
   const handleInputChange = (e) => {
@@ -69,19 +74,12 @@ const Dashboard = () => {
 
   const handleSubmit = () => {
     if (!messageInput.trim()) return;
-
-    //  console.log("Sending message:", messageInput);
-    //  console.log("Current chat ID:", currentChatId);
-
-    // Send message via socket or hook
-    // chat.sendMessage({ content: messageInput, useSearch, useReasoning });
     chat.handleSendMessage({ title: messageInput, chatId: currentChatId });
 
     setMessageInput("");
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
-
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -175,29 +173,24 @@ const Dashboard = () => {
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
           <div>
             <div className="text-[11px] font-medium text-zinc-500 px-2 mb-2 tracking-wider uppercase">
-              Today
+              Chats
             </div>
-            <div className="space-y-0.5">
-              <button
-                aria-label="Open conversation: Dashboard Layout Refresh"
-                className="flex items-center gap-2 w-full p-2 rounded-lg text-xs font-medium bg-zinc-800/50 text-zinc-200 truncate text-left"
-              >
-                <span className="truncate">Dashboard Layout Refresh</span>
-              </button>
-            </div>
-          </div>
 
-          <div>
-            <div className="text-[11px] font-medium text-zinc-500 px-2 mb-2 tracking-wider uppercase">
-              Yesterday
-            </div>
             <div className="space-y-0.5">
-              <button
-                aria-label="Open conversation: React State Architecture"
-                className="flex items-center gap-2 w-full p-2 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30 transition-colors truncate text-left"
-              >
-                <span className="truncate">React State Architecture</span>
-              </button>
+              {Object.values(chats).map((chat) => (
+                <button
+                  key={chat.id}
+                  onClick={() => openChat(chat.id)}
+                  aria-label={`Open conversation: ${chat.title}`}
+                  className={`flex items-center cursor-pointer gap-2 w-full p-2 rounded-lg text-xs truncate text-left transition-colors ${
+                    currentChatId === chat.id
+                      ? "bg-zinc-800/50 text-zinc-200 font-medium"
+                      : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
+                  }`}
+                >
+                  <span className="truncate">{chat.title}</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -262,7 +255,7 @@ const Dashboard = () => {
 
         {/* Scrollable Conversation Stream */}
         <div className="flex-1 overflow-y-auto px-4 py-6 min-w-0">
-          <div className="max-w-4xl mx-auto space-y-9 min-w-0">
+          <div className="max-w-4xl mx-auto space-y-8 min-w-0">
             {messages.map((message, index) => {
               const isUser = message.role === "user";
 
@@ -276,24 +269,185 @@ const Dashboard = () => {
                   }
                 >
                   {isUser ? (
-                    // USER MESSAGE
-                    <div className="max-w-[85%] wrap-break bg-zinc-800/80 border border-zinc-700/40 rounded-2xl px-4 py-3 text-sm text-zinc-100 shadow-sm leading-relaxed whitespace-pre-wrap">
-                      {message.content}
+                    /* USER MESSAGE */
+                    <div className="max-w-[85%] break-words bg-zinc-800/80 border border-zinc-700/40 rounded-2xl px-4 py-3 text-sm text-zinc-100 shadow-sm">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          p: ({ children }) => (
+                            <p className="leading-relaxed">{children}</p>
+                          ),
+
+                          strong: ({ children }) => (
+                            <strong className="font-semibold text-white">
+                              {children}
+                            </strong>
+                          ),
+
+                          code: ({ children }) => (
+                            <code className="bg-zinc-900 border border-zinc-700 rounded px-1.5 py-0.5 text-violet-300 text-[13px]">
+                              {children}
+                            </code>
+                          ),
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
                     </div>
                   ) : (
-                    // AI MESSAGE
+                    /* AI MESSAGE */
                     <>
+                      {/* AI Icon */}
                       <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 mt-1">
                         <Sparkles size={14} className="text-violet-400" />
                       </div>
 
-                      <div className="flex-1 space-y-4 min-w-0">
-                        <div className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap wrap-break">
-                          {message.content}
+                      <div className="flex-1 min-w-0">
+                        {/* AI Content */}
+                        <div
+                          className="
+                    text-sm
+                    text-zinc-200
+                    leading-7
+                    break-words
+                    overflow-hidden
+
+                    [&>p]:mb-4
+                    [&>p:last-child]:mb-0
+
+                    [&>h1]:text-2xl
+                    [&>h1]:font-bold
+                    [&>h1]:text-white
+                    [&>h1]:mb-4
+
+                    [&>h2]:text-xl
+                    [&>h2]:font-semibold
+                    [&>h2]:text-white
+                    [&>h2]:mb-3
+
+                    [&>h3]:text-lg
+                    [&>h3]:font-semibold
+                    [&>h3]:text-zinc-100
+                    [&>h3]:mb-2
+
+                    [&>ul]:list-disc
+                    [&>ul]:pl-6
+                    [&>ul]:mb-4
+                    [&>ul]:space-y-1
+
+                    [&>ol]:list-decimal
+                    [&>ol]:pl-6
+                    [&>ol]:mb-4
+                    [&>ol]:space-y-1
+
+                    [&>blockquote]:border-l-2
+                    [&>blockquote]:border-zinc-700
+                    [&>blockquote]:pl-4
+                    [&>blockquote]:text-zinc-400
+                    [&>blockquote]:italic
+                    [&>blockquote]:my-4
+
+                    [&>hr]:border-zinc-800
+                    [&>hr]:my-6
+
+                    [&_strong]:font-semibold
+                    [&_strong]:text-white
+
+                    [&_a]:text-violet-400
+                    [&_a]:underline
+                    [&_a]:underline-offset-2
+                    hover:[&_a]:text-violet-300
+
+                    [&_li]:pl-1
+                  "
+                        >
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              /* Inline code + code blocks */
+                              code({ inline, className, children, ...props }) {
+                                return inline ? (
+                                  <code
+                                    className="bg-zinc-900 border border-zinc-800 rounded-md px-1.5 py-0.5 text-violet-300 text-[13px]"
+                                    {...props}
+                                  >
+                                    {children}
+                                  </code>
+                                ) : (
+                                  <code
+                                    className={`block ${className || ""}`}
+                                    {...props}
+                                  >
+                                    {children}
+                                  </code>
+                                );
+                              },
+
+                              /* Code block wrapper */
+                              pre({ children }) {
+                                return (
+                                  <pre className="my-4 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-[13px] leading-6">
+                                    {children}
+                                  </pre>
+                                );
+                              },
+
+                              /* Tables */
+                              table({ children }) {
+                                return (
+                                  <div className="my-4 overflow-x-auto rounded-lg border border-zinc-800">
+                                    <table className="w-full text-sm">
+                                      {children}
+                                    </table>
+                                  </div>
+                                );
+                              },
+
+                              thead({ children }) {
+                                return (
+                                  <thead className="bg-zinc-900 border-b border-zinc-800">
+                                    {children}
+                                  </thead>
+                                );
+                              },
+
+                              th({ children }) {
+                                return (
+                                  <th className="px-4 py-3 text-left font-semibold text-zinc-200">
+                                    {children}
+                                  </th>
+                                );
+                              },
+
+                              td({ children }) {
+                                return (
+                                  <td className="px-4 py-3 border-t border-zinc-800 text-zinc-300">
+                                    {children}
+                                  </td>
+                                );
+                              },
+
+                              /* Links */
+                              a({ children, href }) {
+                                return (
+                                  <a
+                                    href={href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-violet-400 hover:text-violet-300 underline underline-offset-2"
+                                  >
+                                    {children}
+                                  </a>
+                                );
+                              },
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
                         </div>
 
                         {/* Response Tools */}
-                        <div className="flex items-center gap-1 pt-1 text-zinc-500">
+                        <div className="flex items-center gap-1 pt-3 text-zinc-500">
                           <button
                             aria-label="Copy response"
                             className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
@@ -329,7 +483,6 @@ const Dashboard = () => {
               );
             })}
 
-            {/* Scroll Anchor */}
             <div ref={messagesEndRef} />
           </div>
         </div>
@@ -372,19 +525,6 @@ const Dashboard = () => {
                   <Globe size={13} />
                   <span>Search</span>
                 </button>
-
-                {/* <button
-                  type="button"
-                  onClick={() => setUseReasoning(!useReasoning)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-colors border ${
-                    useReasoning
-                      ? "bg-violet-500/10 border-violet-500/30 text-violet-400"
-                      : "border-zinc-800 text-zinc-400 hover:bg-zinc-800"
-                  }`}
-                >
-                  <Sparkles size={13} />
-                  <span>Reason</span>
-                </button> */}
               </div>
 
               {/* Input Submit Action */}
