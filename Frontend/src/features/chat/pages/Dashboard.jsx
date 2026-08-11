@@ -35,6 +35,9 @@ const Dashboard = () => {
   const chats = useSelector((state) => state.chats.chats);
   const currentChatId = useSelector((state) => state.chats.currentChatId);
 
+  const currentChat = chats[currentChatId];
+  const messages = currentChat?.messages || [];
+
   const textareaRef = useRef(null);
   const messagesEndRef = useRef(null);
 
@@ -94,7 +97,7 @@ const Dashboard = () => {
   };
 
   return (
-    <main className="h-[100dvh] w-full flex bg-zinc-950 text-zinc-100 font-sans antialiased overflow-hidden selection:bg-zinc-800 selection:text-white relative">
+    <main className="h-screen w-full flex bg-zinc-950 text-zinc-100 font-sans antialiased overflow-hidden selection:bg-zinc-800 selection:text-white relative">
       {/* MOBILE BACKDROP OVERLAY */}
       {sidebarOpen && (
         <div
@@ -108,7 +111,7 @@ const Dashboard = () => {
       <aside
         className={`
           fixed md:relative inset-y-0 left-0 z-40 h-full
-          ${sidebarOpen ? "w-[260px] translate-x-0" : "w-0 -translate-x-full md:translate-x-0 md:w-0"}
+          ${sidebarOpen ? "w-65 translate-x-0" : "w-0 -translate-x-full md:translate-x-0 md:w-0"}
           transition-all duration-300 ease-in-out flex flex-col
           bg-zinc-900/95 md:bg-zinc-900/60 border-r border-zinc-800/60
           backdrop-blur-xl overflow-hidden shrink-0
@@ -205,7 +208,7 @@ const Dashboard = () => {
             aria-label="User settings"
             className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-zinc-800/50 transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center text-xs font-semibold text-white shrink-0">
+            <div className="w-8 h-8 rounded-full bg-linear-to-tr from-violet-600 to-indigo-500 flex items-center justify-center text-xs font-semibold text-white shrink-0">
               {getUserInitials(user?.name || user?.email || "John Doe")}
             </div>
             <div className="flex-1 text-left min-w-0">
@@ -260,70 +263,71 @@ const Dashboard = () => {
         {/* Scrollable Conversation Stream */}
         <div className="flex-1 overflow-y-auto px-4 py-6 min-w-0">
           <div className="max-w-4xl mx-auto space-y-9 min-w-0">
-            {/* User Message */}
-            <div className="flex justify-end min-w-0">
-              <div className="max-w-[85%] break-words bg-zinc-800/80 border border-zinc-700/40 rounded-2xl px-4 py-3 text-sm text-zinc-100 shadow-sm leading-relaxed">
-                I want to implement a modern, ChatGPT-style UI with floating
-                controls and reasoning badges.
-              </div>
-            </div>
+            {messages.map((message, index) => {
+              const isUser = message.role === "user";
 
-            {/* AI Message */}
-            <div className="flex gap-3 md:gap-4 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 mt-1">
-                <Sparkles size={14} className="text-violet-400" />
-              </div>
+              return (
+                <div
+                  key={message._id || `${message.role}-${index}`}
+                  className={
+                    isUser
+                      ? "flex justify-end min-w-0"
+                      : "flex gap-3 md:gap-4 min-w-0"
+                  }
+                >
+                  {isUser ? (
+                    // USER MESSAGE
+                    <div className="max-w-[85%] wrap-break bg-zinc-800/80 border border-zinc-700/40 rounded-2xl px-4 py-3 text-sm text-zinc-100 shadow-sm leading-relaxed whitespace-pre-wrap">
+                      {message.content}
+                    </div>
+                  ) : (
+                    // AI MESSAGE
+                    <>
+                      <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 mt-1">
+                        <Sparkles size={14} className="text-violet-400" />
+                      </div>
 
-              <div className="flex-1 space-y-4 min-w-0">
-                {/* Reasoning Accordion Badge */}
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800/80 text-[11px] text-zinc-400 font-mono">
-                  <Compass size={12} className="animate-spin text-violet-400" />
-                  <span>Thought for 3 seconds</span>
+                      <div className="flex-1 space-y-4 min-w-0">
+                        <div className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap wrap-break">
+                          {message.content}
+                        </div>
+
+                        {/* Response Tools */}
+                        <div className="flex items-center gap-1 pt-1 text-zinc-500">
+                          <button
+                            aria-label="Copy response"
+                            className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
+                          >
+                            <Copy size={14} />
+                          </button>
+
+                          <button
+                            aria-label="Regenerate response"
+                            className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
+                          >
+                            <RotateCw size={14} />
+                          </button>
+
+                          <button
+                            aria-label="Good response"
+                            className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
+                          >
+                            <ThumbsUp size={14} />
+                          </button>
+
+                          <button
+                            aria-label="Bad response"
+                            className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
+                          >
+                            <ThumbsDown size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
-
-                <div className="text-sm text-zinc-200 leading-relaxed space-y-3 break-words">
-                  <p>
-                    Here is an updated design architecture featuring modern UI
-                    patterns:
-                  </p>
-                  <ul className="list-disc pl-5 space-y-1 text-zinc-300">
-                    <li>Floating composer pill with contextual tools</li>
-                    <li>
-                      Glassmorphic sidebar with instant collapsible drawer
-                    </li>
-                    <li>Inline AI response tools (Copy, Retry, Feedback)</li>
-                  </ul>
-                </div>
-
-                {/* Response Tools */}
-                <div className="flex items-center gap-1 pt-1 text-zinc-500">
-                  <button
-                    aria-label="Copy response"
-                    className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
-                  >
-                    <Copy size={14} />
-                  </button>
-                  <button
-                    aria-label="Regenerate response"
-                    className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
-                  >
-                    <RotateCw size={14} />
-                  </button>
-                  <button
-                    aria-label="Good response"
-                    className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
-                  >
-                    <ThumbsUp size={14} />
-                  </button>
-                  <button
-                    aria-label="Bad response"
-                    className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
-                  >
-                    <ThumbsDown size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
+              );
+            })}
 
             {/* Scroll Anchor */}
             <div ref={messagesEndRef} />
