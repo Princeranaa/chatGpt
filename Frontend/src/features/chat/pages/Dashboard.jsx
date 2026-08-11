@@ -28,8 +28,12 @@ const Dashboard = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [useSearch, setUseSearch] = useState(false);
-  const [useReasoning, setUseReasoning] = useState(true);
+  // const [useReasoning, setUseReasoning] = useState(true);
   const [messageInput, setMessageInput] = useState("");
+  console.log("message send ", messageInput);
+
+  const chats = useSelector((state) => state.chats.chats);
+  const currentChatId = useSelector((state) => state.chats.currentChatId);
 
   const textareaRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -47,7 +51,7 @@ const Dashboard = () => {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${Math.min(
         textareaRef.current.scrollHeight,
-        160
+        160,
       )}px`;
     }
   };
@@ -56,22 +60,25 @@ const Dashboard = () => {
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      handleSubmit();
     }
   };
 
-  const handleSendMessage = () => {
+  const handleSubmit = () => {
     if (!messageInput.trim()) return;
+
+    //  console.log("Sending message:", messageInput);
+    //  console.log("Current chat ID:", currentChatId);
 
     // Send message via socket or hook
     // chat.sendMessage({ content: messageInput, useSearch, useReasoning });
+    chat.handleSendMessage({ title: messageInput, chatId: currentChatId });
 
     setMessageInput("");
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
 
-    // Scroll to bottom after message sent
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -88,7 +95,6 @@ const Dashboard = () => {
 
   return (
     <main className="h-[100dvh] w-full flex bg-zinc-950 text-zinc-100 font-sans antialiased overflow-hidden selection:bg-zinc-800 selection:text-white relative">
-      
       {/* MOBILE BACKDROP OVERLAY */}
       {sidebarOpen && (
         <div
@@ -117,9 +123,9 @@ const Dashboard = () => {
           >
             <PanelLeft size={18} />
           </button>
-          
+
           <div className="flex items-center gap-1">
-            <button 
+            <button
               aria-label="New Thread"
               className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800/60 transition-colors"
             >
@@ -137,7 +143,7 @@ const Dashboard = () => {
 
         {/* New Chat Action */}
         <div className="px-3 py-1">
-          <button 
+          <button
             aria-label="Create New Chat"
             className="flex items-center gap-2.5 w-full bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/50 rounded-xl p-2.5 text-sm font-medium text-zinc-200 transition-all shadow-sm"
           >
@@ -169,7 +175,7 @@ const Dashboard = () => {
               Today
             </div>
             <div className="space-y-0.5">
-              <button 
+              <button
                 aria-label="Open conversation: Dashboard Layout Refresh"
                 className="flex items-center gap-2 w-full p-2 rounded-lg text-xs font-medium bg-zinc-800/50 text-zinc-200 truncate text-left"
               >
@@ -183,7 +189,7 @@ const Dashboard = () => {
               Yesterday
             </div>
             <div className="space-y-0.5">
-              <button 
+              <button
                 aria-label="Open conversation: React State Architecture"
                 className="flex items-center gap-2 w-full p-2 rounded-lg text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30 transition-colors truncate text-left"
               >
@@ -195,7 +201,7 @@ const Dashboard = () => {
 
         {/* User Profile Footer */}
         <div className="p-3 border-t border-zinc-800/60">
-          <button 
+          <button
             aria-label="User settings"
             className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-zinc-800/50 transition-colors"
           >
@@ -217,7 +223,6 @@ const Dashboard = () => {
 
       {/* 2. MAIN CHAT AREA */}
       <div className="flex-1 flex flex-col h-full min-w-0 bg-zinc-950 relative">
-        
         {/* Header Bar */}
         <header className="h-14 border-b border-zinc-800/40 px-4 flex items-center justify-between gap-4 z-10 shrink-0">
           <div className="flex items-center gap-2">
@@ -232,7 +237,7 @@ const Dashboard = () => {
             )}
 
             {/* Model Selector Dropdown */}
-            <button 
+            <button
               aria-label="Select AI Model"
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-800 hover:bg-zinc-900 transition-colors text-xs font-medium text-zinc-200"
             >
@@ -243,7 +248,7 @@ const Dashboard = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button 
+            <button
               aria-label="Share thread"
               className="p-2 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 rounded-lg transition-colors"
             >
@@ -255,7 +260,6 @@ const Dashboard = () => {
         {/* Scrollable Conversation Stream */}
         <div className="flex-1 overflow-y-auto px-4 py-6 min-w-0">
           <div className="max-w-4xl mx-auto space-y-9 min-w-0">
-            
             {/* User Message */}
             <div className="flex justify-end min-w-0">
               <div className="max-w-[85%] break-words bg-zinc-800/80 border border-zinc-700/40 rounded-2xl px-4 py-3 text-sm text-zinc-100 shadow-sm leading-relaxed">
@@ -269,7 +273,7 @@ const Dashboard = () => {
               <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0 mt-1">
                 <Sparkles size={14} className="text-violet-400" />
               </div>
-              
+
               <div className="flex-1 space-y-4 min-w-0">
                 {/* Reasoning Accordion Badge */}
                 <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800/80 text-[11px] text-zinc-400 font-mono">
@@ -293,25 +297,25 @@ const Dashboard = () => {
 
                 {/* Response Tools */}
                 <div className="flex items-center gap-1 pt-1 text-zinc-500">
-                  <button 
+                  <button
                     aria-label="Copy response"
                     className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
                   >
                     <Copy size={14} />
                   </button>
-                  <button 
+                  <button
                     aria-label="Regenerate response"
                     className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
                   >
                     <RotateCw size={14} />
                   </button>
-                  <button 
+                  <button
                     aria-label="Good response"
                     className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
                   >
                     <ThumbsUp size={14} />
                   </button>
-                  <button 
+                  <button
                     aria-label="Bad response"
                     className="p-1.5 hover:text-zinc-300 hover:bg-zinc-900 rounded-md transition-colors"
                   >
@@ -329,7 +333,6 @@ const Dashboard = () => {
         {/* 3. FLOATING COMPOSER INPUT */}
         <div className="p-3 md:p-4 w-full max-w-2xl mx-auto shrink-0">
           <div className="relative bg-zinc-900/90 border border-zinc-800 rounded-2xl shadow-2xl p-2.5 md:p-3 backdrop-blur-md focus-within:border-zinc-700 transition-all">
-            
             {/* Auto-Expanding Textarea */}
             <textarea
               ref={textareaRef}
@@ -344,10 +347,9 @@ const Dashboard = () => {
 
             {/* Composer Action Bar */}
             <div className="flex items-center justify-between pt-2 border-t border-zinc-800/50 mt-1">
-              
               {/* Feature Pills */}
               <div className="flex items-center gap-1 md:gap-1.5">
-                <button 
+                <button
                   aria-label="Attach file"
                   className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-colors"
                 >
@@ -367,7 +369,7 @@ const Dashboard = () => {
                   <span>Search</span>
                 </button>
 
-                <button
+                {/* <button
                   type="button"
                   onClick={() => setUseReasoning(!useReasoning)}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-colors border ${
@@ -378,12 +380,12 @@ const Dashboard = () => {
                 >
                   <Sparkles size={13} />
                   <span>Reason</span>
-                </button>
+                </button> */}
               </div>
 
               {/* Input Submit Action */}
               <div className="flex items-center gap-1.5">
-                <button 
+                <button
                   aria-label="Voice input"
                   className="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-colors"
                 >
@@ -391,7 +393,7 @@ const Dashboard = () => {
                 </button>
 
                 <button
-                  onClick={handleSendMessage}
+                  onClick={handleSubmit}
                   disabled={!messageInput.trim()}
                   aria-label="Send message"
                   className="p-2 bg-zinc-100 text-zinc-950 hover:bg-white disabled:opacity-30 disabled:hover:bg-zinc-100 rounded-xl transition-colors shadow-sm"
@@ -399,7 +401,6 @@ const Dashboard = () => {
                   <ArrowUp size={16} strokeWidth={2.5} />
                 </button>
               </div>
-
             </div>
           </div>
 
@@ -407,7 +408,6 @@ const Dashboard = () => {
             GPT-4o can make mistakes. Verify important details.
           </div>
         </div>
-
       </div>
     </main>
   );
