@@ -82,28 +82,30 @@ export const useChat = () => {
     }
   };
 
-  const handleOpenChat = async (chatId) => {
-    const data = await getMessagesWithCurrentChat(chatId);
-    const { messages } = data;
-    const formattedMessage = messages.map((msg) => ({
-      content: msg.content,
-      role: msg.role,
-    }));
+  const handleOpenChat = async (chatId, chats) => {
+    if (chats[chatId]?.messages.length === 0) {
+      const data = await getMessagesWithCurrentChat(chatId);
+      const { messages } = data;
+      const formattedMessage = messages.map((msg) => ({
+        content: msg.content,
+        role: msg.role,
+      }));
 
-    dispatch(
-      addMessages({
-        chatId,
-        messages: formattedMessage,
-      }),
-    );
+      dispatch(
+        addMessages({
+          chatId,
+          messages: formattedMessage,
+        }),
+      );
 
-    dispatch(setCurrentChatId(chatId));
+      dispatch(setCurrentChatId(chatId));
+    }
   };
 
   return {
     initializeSocket,
     handleSendMessage,
     handleGetChats,
-    handleOpenChat
+    handleOpenChat,
   };
 };

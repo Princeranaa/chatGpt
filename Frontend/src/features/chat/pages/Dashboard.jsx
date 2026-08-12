@@ -49,7 +49,7 @@ const Dashboard = () => {
   }, []);
 
   const openChat = (chatId) => {
-    chat.handleOpenChat(chatId);
+    chat.handleOpenChat(chatId,chats);
   };
 
   // Auto-resize textarea as user types
