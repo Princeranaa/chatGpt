@@ -8,8 +8,6 @@ import {
   createAgent,
 } from "langchain";
 import * as z from "zod";
-// import { searchInternet } from "./internet.service.js";
-
 import { searchInternet } from "./internet.service.js";
 
 const geminiModel = new ChatGoogleGenerativeAI({

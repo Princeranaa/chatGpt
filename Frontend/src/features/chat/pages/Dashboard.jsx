@@ -49,7 +49,7 @@ const Dashboard = () => {
   }, []);
 
   const openChat = (chatId) => {
-    chat.handleOpenChat(chatId,chats);
+    chat.handleOpenChat(chatId, chats);
   };
 
   // Auto-resize textarea as user types
@@ -202,14 +202,14 @@ const Dashboard = () => {
             className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-zinc-800/50 transition-colors"
           >
             <div className="w-8 h-8 rounded-full bg-linear-to-tr from-violet-600 to-indigo-500 flex items-center justify-center text-xs font-semibold text-white shrink-0">
-              {getUserInitials(user?.name || user?.email || "John Doe")}
+              {getUserInitials(user?.email)}
             </div>
             <div className="flex-1 text-left min-w-0">
               <div className="text-xs font-medium text-zinc-200 truncate">
-                {user?.name || "John Doe"}
+                {user?.fullName?.firstName + " " + user?.fullName?.lastName}
               </div>
               <div className="text-[10px] text-zinc-500 truncate">
-                {user?.email || "Pro Plan"}
+                {user?.email}
               </div>
             </div>
             <Settings size={14} className="text-zinc-400 shrink-0" />
