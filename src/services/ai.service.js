@@ -1,10 +1,33 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatMistralAI } from "@langchain/mistralai";
-import { HumanMessage, SystemMessage, AIMessage } from "langchain";
+import {
+  HumanMessage,
+  SystemMessage,
+  AIMessage,
+  tool,
+  createAgent,
+} from "langchain";
+import * as z from "zod";
+// import { searchInternet } from "./internet.service.js";
+
+import { searchInternet } from "./internet.service.js";
 
 const geminiModel = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
   apiKey: process.env.GEMINI_API_KEY,
+});
+
+const searchInternetTool = tool(searchInternet, {
+  name: "searchInternet",
+  description: "Use this tool to get the letest information from the internet",
+  schema: z.object({
+    query: z.string().describe("The query to search the internet"),
+  }),
+});
+
+const agent = createAgent({
+  model: geminiModel,
+  tools: [searchInternetTool],
 });
 
 const mistralAiModel = new ChatMistralAI({
@@ -13,18 +36,17 @@ const mistralAiModel = new ChatMistralAI({
 });
 
 export async function GeneratResponse(messages) {
-  const response = await geminiModel.invoke(messages.map(msg => {
-    if(msg.role === "user"){
-      return new HumanMessage(msg.content)
-    }else{
-      return new AIMessage(msg.content)
-    }
-  }));
-  return response.text;
+  const response = await agent.invoke({
+    messages: messages.map((msg) => {
+      if (msg.role === "user") {
+        return new HumanMessage(msg.content);
+      } else {
+        return new AIMessage(msg.content);
+      }
+    }),
+  });
+  return response.messages[response.messages.length-1].text;
 }
-
-
-
 
 const titleSystemPrompt = `
       You are a chat title generator.
@@ -57,13 +79,10 @@ const titleSystemPrompt = `
       Node.js API Error Debugging
   `;
 
-
-
-
 export async function generateTitle(message) {
   const response = await mistralAiModel.invoke([
     new SystemMessage(titleSystemPrompt),
-    new HumanMessage(message)
-  ])
+    new HumanMessage(message),
+  ]);
   return response.text;
 }
